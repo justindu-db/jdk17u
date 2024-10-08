@@ -470,11 +470,27 @@ bool klassVtable::update_inherited_vtable(Thread* current,
     } else {
       super_method = method_at(i);
     }
+    if (super_method == NULL) {
+      tty->print_cr("i = %d", i);
+      tty->print_cr("is_preinitialized_vtable() = %d", is_preinitialized_vtable());
+      tty->print_cr("printing vtable for superclass");
+      super->vtable().print();
+      tty->print_cr("printing klass for superclass");
+      super->print_on(tty);
+      tty->print_cr("printing vtable for this class");
+      this->print();
+      tty->print_cr("printing klass for this class");
+      this->klass()->print_on(tty);
+    }
     // Check if method name matches.  Ignore match if klass is an interface and the
     // matching method is a non-public java.lang.Object method.  (See JVMS 5.4.3.4)
     // This is safe because the method at this slot should never get invoked.
     // (TBD: put in a method to throw NoSuchMethodError if this slot is ever used.)
-    if (super_method->name() == name && super_method->signature() == signature &&
+    if (super_method->name()
+        == name
+        && super_method->signature()
+        == signature
+        &&
         (!klass->is_interface() ||
          !SystemDictionary::is_nonpublic_Object_method(super_method))) {
 
@@ -1606,7 +1622,6 @@ void klassVtable::verify_against(outputStream* st, klassVtable* vt, int index) {
   }
 }
 
-#ifndef PRODUCT
 void klassVtable::print() {
   ResourceMark rm;
   tty->print("klassVtable for klass %s (length %d):\n", _klass->internal_name(), length());
@@ -1615,7 +1630,6 @@ void klassVtable::print() {
     tty->cr();
   }
 }
-#endif
 
 void vtableEntry::verify(klassVtable* vt, outputStream* st) {
   Klass* vtklass = vt->klass();
@@ -1635,8 +1649,6 @@ void vtableEntry::verify(klassVtable* vt, outputStream* st) {
  }
 }
 
-#ifndef PRODUCT
-
 void vtableEntry::print() {
   ResourceMark rm;
   char null_replacement_str[] = "NULL";
@@ -1646,6 +1658,8 @@ void vtableEntry::print() {
       : method()->name()->as_C_string());
   tty->print("m " PTR_FORMAT " ", p2i(method()));
 }
+
+#ifndef PRODUCT
 
 class VtableStats : AllStatic {
  public:

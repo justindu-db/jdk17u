@@ -95,7 +95,7 @@ class klassVtable {
 #endif // INCLUDE_JVMTI
 
   // Debugging code
-  void print()                                              PRODUCT_RETURN;
+  void print();
   void verify(outputStream* st, bool force = false);
   static void print_statistics()                            PRODUCT_RETURN;
 
@@ -193,7 +193,7 @@ class vtableEntry {
   Method* _method;
   void set(Method* method)  { assert(method != NULL, "use clear"); _method = method; }
   void clear()                { _method = NULL; }
-  void print()                                        PRODUCT_RETURN;
+  void print();
   void verify(klassVtable* vt, outputStream* st);
 
   friend class klassVtable;
