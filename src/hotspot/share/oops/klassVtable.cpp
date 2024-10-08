@@ -1584,6 +1584,22 @@ void klassVtable::verify(outputStream* st, bool forced) {
 
 void klassVtable::verify_against(outputStream* st, klassVtable* vt, int index) {
   vtableEntry* vte = &vt->table()[index];
+  Method* vte_method = vte->method();
+  Method* table_method = table()[index].method();
+  if (vte_method == NULL || table_method == NULL) {
+    tty->print_cr("index = %d", index);
+    tty->print_cr("vte_method = " PTR_FORMAT, p2i(vte_method));
+    tty->print_cr("table_method = " PTR_FORMAT, p2i(table_method));
+    tty->print_cr("printing vtable for superclass");
+    vt->print();
+    tty->print_cr("printing vtable for this class");
+    this->print();
+    tty->print_cr("printing klass for superclass");
+    vt->klass()->print_on(tty);
+    tty->print_cr("printing klass for this class");
+    this->klass()->print_on(tty);
+    fatal("method in vtable is null!");
+  }
   if (vte->method()->name()      != table()[index].method()->name() ||
       vte->method()->signature() != table()[index].method()->signature()) {
     fatal("mismatched name/signature of vtable entries");
@@ -1623,10 +1639,12 @@ void vtableEntry::verify(klassVtable* vt, outputStream* st) {
 
 void vtableEntry::print() {
   ResourceMark rm;
-  tty->print("vtableEntry %s: ", method()->name()->as_C_string());
-  if (Verbose) {
-    tty->print("m " PTR_FORMAT " ", p2i(method()));
-  }
+  char null_replacement_str[] = "NULL";
+  tty->print("vtableEntry %s: ",
+    method() == NULL
+      ? null_replacement_str
+      : method()->name()->as_C_string());
+  tty->print("m " PTR_FORMAT " ", p2i(method()));
 }
 
 class VtableStats : AllStatic {
